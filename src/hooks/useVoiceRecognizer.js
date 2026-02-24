@@ -1,25 +1,16 @@
 // src/hooks/useVoiceRecognizer.js
+//
+// TF.js and speech-commands are loaded as UMD globals via <script> tags in index.html.
+// We access them through window.tf and window.speechCommands — zero bundler involvement.
 import { useCallback, useRef, useState } from 'react'
 import { CONFIDENCE_THRESHOLD, WORD_MAP, MONITORED_WORDS } from '../lib/constants'
 
-// TF.js and speech-commands are loaded lazily to avoid
-// the CJS/ESM conflict at module parse time in Vite dev mode.
-let tfModule = null
-let scModule = null
-
-async function loadTF() {
-  if (tfModule && scModule) return { tf: tfModule, speechCommands: scModule }
-  tfModule = await import('@tensorflow/tfjs')
-  await import('@tensorflow/tfjs-backend-webgl')
-  scModule = await import('@tensorflow-models/speech-commands')
-  return { tf: tfModule, speechCommands: scModule }
-}
-
 export function useVoiceRecognizer({ onCommand }) {
   const recognizerRef = useRef(null)
-  const [status, setStatus]   = useState('idle')   // idle | loading | listening | error
-  const [error, setError]     = useState(null)
+  const [status, setStatus] = useState('idle')   // idle | loading | listening | error
+  const [error, setError]   = useState(null)
 
+  // Resume AudioContext — mandatory on Android Chrome / iOS Safari before getUserMedia
   const resumeAudioContext = useCallback(async () => {
     const Ctx = window.AudioContext || window.webkitAudioContext
     if (!Ctx) return
@@ -33,21 +24,28 @@ export function useVoiceRecognizer({ onCommand }) {
     setStatus('loading')
 
     try {
+      // Guard — CDN scripts must be loaded
+      if (!window.tf || !window.speechCommands) {
+        throw new Error('TensorFlow.js CDN scripts not yet loaded. Check your network.')
+      }
+
+      const tf             = window.tf
+      const speechCommands = window.speechCommands
+
       await resumeAudioContext()
 
-      const { tf, speechCommands } = await loadTF()
-
-      // Try WebGL backend, fall back to CPU
+      // WebGL backend for GPU-accelerated inference on Android
       try {
         await tf.setBackend('webgl')
         await tf.ready()
       } catch {
         await tf.setBackend('cpu')
         await tf.ready()
-        console.warn('[VOXA] WebGL unavailable, using CPU backend')
+        console.warn('[VOXA] WebGL unavailable — falling back to CPU')
       }
       console.log('[VOXA] TF backend:', tf.getBackend())
 
+      // Load model once; cached in ref for subsequent starts
       if (!recognizerRef.current) {
         recognizerRef.current = speechCommands.create('BROWSER_FFT')
         await recognizerRef.current.ensureModelLoaded()
@@ -74,10 +72,10 @@ export function useVoiceRecognizer({ onCommand }) {
           }
         },
         {
-          includeSpectrogram: false,
-          probabilityThreshold: CONFIDENCE_THRESHOLD,
+          includeSpectrogram:             false,
+          probabilityThreshold:           CONFIDENCE_THRESHOLD,
           invokeCallbackOnNoiseAndUnknown: false,
-          overlapFactor: 0.75,
+          overlapFactor:                  0.75,
         }
       )
 
