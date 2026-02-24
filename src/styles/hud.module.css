@@ -1,0 +1,193 @@
+/* src/styles/hud.module.css */
+
+.hud {
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  padding: 20px;
+  z-index: 10;
+  font-family: 'Share Tech Mono', monospace;
+  color: #00fff7;
+}
+
+/* ── Top bar ── */
+.topBar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.logo {
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 900;
+  font-size: clamp(18px, 4vw, 28px);
+  letter-spacing: 0.4em;
+  color: #00fff7;
+  text-shadow: 0 0 20px #00fff7, 0 0 60px #00fff740;
+  opacity: 0.9;
+}
+
+.statusBar {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 11px;
+  letter-spacing: 0.15em;
+  color: rgba(0,255,247,0.5);
+}
+
+.dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: #333;
+  transition: background 0.3s, box-shadow 0.3s;
+}
+.dotActive {
+  background: #ff0080;
+  box-shadow: 0 0 12px #ff0080;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+.fbBadge {
+  font-size: 10px;
+  letter-spacing: 0.15em;
+  color: #ffee00;
+  opacity: 0.7;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; }
+  50%       { opacity: 0.35; }
+}
+
+/* ── Command display ── */
+.commandArea {
+  align-self: center;
+  text-align: center;
+}
+
+.cmdWord {
+  font-family: 'Orbitron', sans-serif;
+  font-size: clamp(40px, 12vw, 88px);
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  color: #ffee00;
+  text-shadow:
+    0 0 20px #ffee00,
+    0 0 60px #ffee0080,
+    0 0 120px #ffee0030;
+  opacity: 0;
+  transform: scale(0.75) translateY(10px);
+  transition: opacity 0.12s ease-out, transform 0.12s ease-out;
+  min-height: 1.2em;
+}
+.cmdShow {
+  opacity: 1;
+  transform: scale(1) translateY(0);
+  animation: cmdFadeOut 1.0s ease-out forwards;
+}
+@keyframes cmdFadeOut {
+  0%   { opacity: 1; transform: scale(1) translateY(0); }
+  70%  { opacity: 1; transform: scale(1) translateY(0); }
+  100% { opacity: 0; transform: scale(0.9) translateY(-8px); }
+}
+
+.confWrap {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 8px;
+}
+.confLabel {
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  color: rgba(0,255,247,0.35);
+}
+.confBar {
+  width: 120px;
+  height: 3px;
+  background: rgba(255,255,255,0.08);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.confFill {
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, #00fff7, #ff0080);
+  transition: width 0.3s ease;
+}
+
+/* ── Bottom row ── */
+.bottomRow {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+
+.coordsPanel {
+  background: rgba(0,10,20,0.72);
+  border: 1px solid rgba(0,255,247,0.12);
+  border-radius: 8px;
+  padding: 12px 16px;
+  font-size: 11px;
+  line-height: 1.8;
+  letter-spacing: 0.1em;
+  backdrop-filter: blur(10px);
+}
+.axis { color: rgba(0,255,247,0.35); }
+
+.startBtn {
+  pointer-events: all;
+  font-family: 'Orbitron', sans-serif;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.25em;
+  color: #030810;
+  background: #00fff7;
+  border: none;
+  border-radius: 6px;
+  padding: 14px 28px;
+  cursor: pointer;
+  text-transform: uppercase;
+  box-shadow: 0 0 28px #00fff780;
+  transition: transform 0.12s, box-shadow 0.25s, background 0.25s;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+.startBtn:active  { transform: scale(0.94); }
+.startBtn:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  transform: none;
+}
+.startBtnActive {
+  background: #ff0080;
+  box-shadow: 0 0 28px #ff008080;
+}
+
+/* ── Firebase warning ── */
+.fbWarning {
+  position: absolute;
+  bottom: 80px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255, 100, 0, 0.12);
+  border: 1px solid rgba(255, 150, 50, 0.35);
+  border-radius: 8px;
+  padding: 10px 18px;
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  color: rgba(255, 200, 100, 0.85);
+  text-align: center;
+  max-width: 90vw;
+  backdrop-filter: blur(8px);
+}
+.fbWarning code {
+  color: #ffee00;
+  font-family: 'Share Tech Mono', monospace;
+}
