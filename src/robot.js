@@ -1,8 +1,5 @@
-// robot.js — Firebase realtime direction sender
 import { db } from "./firebase";
 import { ref, set } from "firebase/database";
-
-const MOVE_TIME = 500; // ms before auto-stop
 
 function saveDirection(char) {
   set(ref(db, "robot/liveDirection"), {
@@ -19,7 +16,6 @@ export function move(dir) {
     right:    "R",
     stop:     "S",
   };
-
   const char = map[dir] ?? "S";
   saveDirection(char);
 }
