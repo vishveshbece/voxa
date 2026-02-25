@@ -1,22 +1,220 @@
 <!DOCTYPE html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-    <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>VOXA — Voice 3D Controller</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com" />
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet" />
+<head>
+<meta charset="UTF-8">
+<title>VOICE BOT – Blue Horizon</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700&display=swap" rel="stylesheet">
 
-    <!-- TF.js + speech-commands loaded as UMD globals — bypasses ALL bundler issues -->
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow/tfjs@3.21.0/dist/tf.min.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/@tensorflow-models/speech-commands@0.5.4/dist/speech-commands.min.js"></script>
-  </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.jsx"></script>
-  </body>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+
+body{
+  font-family:'Orbitron',sans-serif;
+  background:black;
+  color:white;
+  overflow:hidden;
+}
+
+.hud{
+  width:100vw;
+  height:100vh;
+  background:url("bg.jpg") no-repeat center/cover;
+  display:flex;
+  flex-direction:column;
+}
+
+/* TITLE */
+.top-title{
+  text-align:center;
+  padding:15px 10px;
+}
+.hud-title{
+  font-size:42px;
+  color:#00f6ff;
+  text-shadow:0 0 15px #00f6ff,0 0 40px #00f6ff;
+}
+.hud-sub{
+  font-size:12px;
+  color:#8ffcff;
+}
+
+/* LAYOUT */
+.container{
+  flex:1;
+  display:flex;
+  padding:15px 20px;
+  gap:25px;
+}
+
+/* ARENA */
+.arena{
+  flex:2;
+  position:relative;
+  border-radius:20px;
+  overflow:hidden;
+}
+
+.chat-bubble{
+  position:absolute;
+  top:10px;
+  left:50%;
+  transform:translateX(-50%);
+  padding:8px 16px;
+  background:rgba(0,255,255,0.15);
+  border:1px solid #00f6ff;
+  border-radius:20px;
+  box-shadow:0 0 15px #00f6ff;
+  font-size:13px;
+  white-space:nowrap;
+}
+
+/* ROBOT */
+#robot{
+  position:absolute;
+  left:50%;
+  top:60%;
+  transform:translate(-50%,-50%);
+  transition:transform .3s ease;
+}
+.head{
+  width:90px;
+  height:70px;
+  background:linear-gradient(145deg,#0e2a40,#061621);
+  border-radius:20px;
+  border:2px solid #00f6ff;
+  box-shadow:0 0 20px rgba(0,255,255,.8);
+  display:flex;
+  justify-content:space-around;
+  align-items:center;
+}
+.eye{
+  width:10px;height:10px;
+  background:#00f6ff;
+  border-radius:50%;
+  box-shadow:0 0 8px #00f6ff;
+}
+.body{
+  width:65px;height:50px;
+  margin:6px auto 0;
+  background:linear-gradient(145deg,#071a28,#030c14);
+  border-radius:12px;
+  border:2px solid #00f6ff;
+}
+
+/* CONTROLS */
+.controls{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  gap:18px;
+}
+
+/* MIC */
+#micBtn{
+  width:100px;height:100px;
+  font-size:34px;
+  border-radius:50%;
+  border:none;
+  background:radial-gradient(circle at top,#00f6ff,#004b57);
+  box-shadow:0 0 35px #00f6ff;
+  cursor:pointer;
+}
+#micBtn.active{
+  animation:pulse 1.2s infinite;
+}
+@keyframes pulse{
+  0%  {box-shadow:0 0 20px #00f6ff;}
+  50% {box-shadow:0 0 60px #00f6ff;}
+  100%{box-shadow:0 0 20px #00f6ff;}
+}
+
+#modeBtn,#autoBtn{
+  padding:8px 18px;
+  border-radius:20px;
+  background:transparent;
+  border:1px solid #00f6ff;
+  color:#00f6ff;
+  cursor:pointer;
+  font-family:inherit;
+}
+
+/* D-PAD */
+#dpad{
+  margin-top:10px;
+  text-align:center;
+}
+#dpad button{
+  width:60px;height:60px;
+  margin:6px;
+  border-radius:14px;
+  background:linear-gradient(145deg,#081e2d,#031019);
+  border:1px solid #00f6ff;
+  color:#00f6ff;
+  font-size:20px;
+  cursor:pointer;
+}
+
+.hidden{display:none;}
+
+/* MOBILE */
+@media(max-width:768px){
+  .container{flex-direction:column;}
+  .arena{height:55vh;}
+  .controls{height:35vh;}
+  #micBtn{width:85px;height:85px;font-size:28px;}
+  #dpad button{width:50px;height:50px;}
+  .hud-title{font-size:30px;}
+}
+</style>
+</head>
+
+<body>
+<div class="hud">
+
+  <div class="top-title">
+    <div class="hud-title">VOICE BOT</div>
+    <div class="hud-sub">⚡ Blue Horizon AI Control System ⚡</div>
+  </div>
+
+  <div class="container">
+
+    <!-- ARENA -->
+    <div class="arena" id="arena">
+      <div class="chat-bubble" id="chat">🤖 Ready</div>
+
+      <div id="robot">
+        <div class="head">
+          <div class="eye"></div>
+          <div class="eye"></div>
+        </div>
+        <div class="body"></div>
+      </div>
+    </div>
+
+    <!-- CONTROLS -->
+    <div class="controls">
+      <button id="micBtn">🎤</button>
+      <button id="modeBtn">🤖 Buttons</button>
+      <button id="autoBtn">▶ AUTO MODE</button>
+
+      <div id="dpad" class="hidden">
+        <button id="forward">▲</button>
+        <div>
+          <button id="left">◀</button>
+          <button id="stop-btn">■</button>
+          <button id="right">▶</button>
+        </div>
+        <button id="backward">▼</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- Vite/bundler entry -->
+<script type="module" src="/src/main.js"></script>
+</body>
 </html>
