@@ -22,9 +22,4 @@ export function move(dir) {
 
   const char = map[dir] ?? "S";
   saveDirection(char);
-
-  // Auto stop after MOVE_TIME unless it's an explicit stop command
-  if (dir !== "stop") {
-    setTimeout(() => saveDirection("S"), MOVE_TIME);
-  }
 }
